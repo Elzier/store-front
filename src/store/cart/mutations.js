@@ -7,5 +7,11 @@ export default {
     } else {
       state.cartItems.push(product)
     }
+  },
+  setPaymentError(state, err) {
+    state.paymentError = err
+  },
+  clearCart(state) {
+    state.cartItems = []
   }
 }

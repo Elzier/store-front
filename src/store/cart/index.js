@@ -8,7 +8,8 @@ export default {
       total: 0 
     },
     cartItems: [],
-    cartCount: 0
+    cartCount: 0,
+    paymentError: null
   },
   actions,
   mutations,
