@@ -1,15 +1,15 @@
-import { getPaymentIntent } from "@/services/payment.service"
+import { getPaymentIntent } from '@/services/payment.service'
 
 export default {
   addToCart({ commit }, product) {
-    commit("addToCart", product)
+    commit('addToCart', product)
   },
-  async handleBuy({ getters, commit }) {
+  async handleBuy({ commit }, data) {
     try {
-      const indent = await getPaymentIntent({ amount: getters.cartTotalPrice })
-      return indent;
+      const indent = await getPaymentIntent(data)
+      return indent
     } catch (err) {
-      commit("setPaymentError", err)
+      commit('setPaymentError', err)
     }
   },
-};
+}

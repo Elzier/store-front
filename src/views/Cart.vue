@@ -9,36 +9,38 @@
             v-for="(item, key) in cartItems"
             :key="key"
           >
-            {{item.title}} - {{item.price}}$
+            {{ item.title }} - {{ item.price }}$
           </li>
         </ul>
         <div class="panel text-right">
-          Items: {{cartCount}}
+          Items: {{ cartCount }}
           <br />
-          Subtotal: {{cartTotalPrice}}$
+          Subtotal: {{ cartTotalPrice }}$
           <hr />
         </div>
       </template>
 
-      <div v-if="!paymentIntent" class="btn_buy">
-        <button class="btn btn-primary" @click="getHandleBuyIntent">Buy</button>
-      </div>
+      <template v-if="!paymentIntent">
+        <user-form @formSubmit="getHandleBuyIntent"></user-form>
+      </template>
 
       <template v-if="paymentIntent">
         <card
           ref="card"
           class="stripe-card"
-          :class="{complete}"
+          :class="{ complete }"
           stripe="pk_test_51IQYXrDXAeuEaQrVQl1Vkk8XJCUicCWAQ2u94LuryJwtuCl8Tz7Sxu1Ev5JXbgCdjB2sZA2kjlZqY7gSKqW1g9Vn00zsxXwHg2"
           :options="stripeOptions"
           @change="complete = $event.complete"
         />
-        <button class="btn btn-success btn_pay" @click="pay" :disabled="!complete">
+        <button
+          class="btn btn-success btn_pay"
+          @click="pay"
+          :disabled="!complete"
+        >
           Pay with credit card
         </button>
       </template>
-
-
     </template>
     <template v-else>
       <img
@@ -52,19 +54,23 @@
 </template>
 
 <script>
-import {mapGetters, mapActions, mapMutations} from 'vuex'
-import {Card, handleCardPayment} from 'vue-stripe-elements-plus'
+import { mapGetters, mapActions, mapMutations } from 'vuex'
+import { Card, handleCardPayment } from 'vue-stripe-elements-plus'
+import UserForm from '../components/UserForm'
 
 export default {
   name: 'Cart',
-  components: { Card },
+  components: {
+    Card,
+    UserForm,
+  },
 
   data: () => ({
     complete: false,
     paymentIntent: null,
     stripeOptions: {
       // see https://stripe.com/docs/stripe.js#element-options for details
-    }
+    },
   }),
   computed: {
     ...mapGetters(['cartItems', 'cartTotalPrice', 'cartCount']),
@@ -72,15 +78,26 @@ export default {
   methods: {
     ...mapActions(['handleBuy']),
     ...mapMutations(['clearCart']),
-    async getHandleBuyIntent () {
-      const intent = await this.handleBuy()
-      this.paymentIntent = intent.client_secret
+    async getHandleBuyIntent(form) {
+      try {
+        const intentResponse = await this.handleBuy({
+          ...form,
+          products: this.cartItems,
+        })
+        this.paymentIntent = intentResponse.paymentIntent.client_secret
+      } catch (err) {
+        console.log(err)
+      }
     },
     async pay() {
-      await handleCardPayment(this.paymentIntent)
-      this.clearCart()
-    }
-  }
+      try {
+        await handleCardPayment(this.paymentIntent)
+        this.clearCart()
+      } catch (err) {
+        console.log(err)
+      }
+    },
+  },
 }
 </script>
 
